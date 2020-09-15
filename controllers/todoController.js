@@ -17,30 +17,38 @@ var Todo = mongoose.model("Todo", todoSchema);
 var urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 module.exports = function (app) {
-  app.get("/todo", function (req, res) {
+  app.get("/todo", async function (req, res) {
     //get data from mongodb and pass it to view
-    Todo.find({}, function (err, data) {
-      if (err) throw err;
-      res.render("todo", { todos: data });
-    });
+    await Todo.find({})
+      .then((data) => {
+        res.render("todo", { todos: data });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   });
 
-  app.post("/todo", urlencodedParser, function (req, res) {
+  app.post("/todo", urlencodedParser, async function (req, res) {
     //get data from the view and add it to mongodb
-    var newTodo = Todo(req.body).save(function (err, data) {
-      if (err) throw err;
-      res.json(data);
-    });
+    await Todo(req.body)
+      .save()
+      .then((data) => {
+        res.json(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   });
 
-  app.delete("/todo/:item", function (req, res) {
+  app.delete("/todo/:item", async function (req, res) {
     //delete the requested data from mongodb
-    Todo.find({ item: req.params.item.replace(/\-/g, " ") }).remove(function (
-      err,
-      data
-    ) {
-      if (err) throw err;
-      res.json(data);
-    });
+    await Todo.find({ item: req.params.item.replace(/\-/g, " ") })
+      .deleteOne()
+      .then((data) => {
+        res.json(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   });
 };
